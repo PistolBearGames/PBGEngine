@@ -219,6 +219,21 @@ public class Sprite {
 			}
 		}
 	}
+	
+	// turn on specific animations
+	public void startAnimation(String animName) {
+		if (p_animations.isEmpty())
+			return;
+		else {
+			Animation a;
+			ListIterator<Animation> iterator = p_animations.listIterator();
+			while (iterator.hasNext()) {
+				a = iterator.next();
+				if (a.animationName == animName && a.animating)
+					a.animating = true;
+			}
+		}
+	}
 
 	// run through all of the animations
 	public void animate() {

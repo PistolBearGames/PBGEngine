@@ -17,12 +17,13 @@ package pbgames.pbgengine;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.ListIterator;
-
 import com.pbgames.pbgengine.R;
-
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.renderscript.*;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -42,7 +43,9 @@ public abstract class PBGEngine extends Activity implements Runnable,
 	private SurfaceView p_surfaceView;
 	private Canvas p_canvas;
 	private Thread p_thread;
-	private boolean p_running, p_ignoreSameID, p_paused, p_debugMode, p_2dMode;
+	private Looper p_loop;
+	private boolean p_running, p_ignoreSameID, p_paused, p_debugMode, p_2dMode, p_helpFlag;
+//	private boolean p_bottomBarFlag;
 	private int p_pauseCount;
 	private Paint p_paintDefaultDraw, p_paintDefaultFont;
 	private Typeface p_typeface;
@@ -77,6 +80,7 @@ public abstract class PBGEngine extends Activity implements Runnable,
 		p_thread = null;
 		p_running = false;
 		p_paused = false;
+//		p_bottomBarFlag = true;
 		p_paintDefaultDraw = null;
 		p_paintDefaultFont = null;
 		p_numPoints = 0;
@@ -89,6 +93,14 @@ public abstract class PBGEngine extends Activity implements Runnable,
 		p_debugMode = debug;
 		p_2dMode = is2dModeOn;
 	}
+
+//	public boolean isP_bottomBarFlag() {
+//		return p_bottomBarFlag;
+//	}
+//
+//	public void setP_bottomBarFlag(boolean p_bottomBarFlag) {
+//		this.p_bottomBarFlag = p_bottomBarFlag;
+//	}
 
 	/**
 	 * Abstract methods that must be implemented in the sub-class!
@@ -124,16 +136,24 @@ public abstract class PBGEngine extends Activity implements Runnable,
 				// Do nothing and return to game.
 			}
 		});
+		AD.setNeutralButton("Help!", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// Show the help screen(s) in game, if there are any.
+				p_helpFlag = true;
+			}
+		});
 		AD.show();
-		Log.d("onBackPressed", "Should be showing AlertDialog AD.");
+		Log.d("onBackPressed", "Should be showing AlertDialog for Program Exit.");
 	}
 
 	/**
 	 * Activity.onCreate()
 	 * 
 	 * Called automatically, does not need separately called by the Game.java
-	 * (or whatever you are calling it).
 	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -156,6 +176,7 @@ public abstract class PBGEngine extends Activity implements Runnable,
 		// create the view object
 		p_surfaceView = new SurfaceView(this);
 		setContentView(p_surfaceView);
+		p_surfaceView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
 
 		// turn on touch listening
 		p_surfaceView.setOnTouchListener(this);
@@ -213,6 +234,9 @@ public abstract class PBGEngine extends Activity implements Runnable,
 			// Process frame only if not paused
 			if (p_paused)
 				continue;
+
+//			if (p_bottomBarFlag)
+//				p_surfaceView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
 			// Calculate frame rate
 			frameCount++;
